@@ -18,6 +18,7 @@ runs:
     #       ref: ${{ github.head_ref }}
 
     - name: Install ARGOCD CLI
+      shell: bash
       id: install_argocd_cli
       run: |
 
@@ -26,6 +27,7 @@ runs:
         sudo chmod +x /usr/local/bin/argocd
 
     - name: Install TELEPORT CLI
+      shell: bash
       id: install_teleport_cli
       run: |
 
@@ -34,6 +36,7 @@ runs:
         sudo apt install -y ./teleport_8.3.4_amd64.deb
 
     - name: Get ARGOCD Credentials
+      shell: bash
       id: get_argocd_credentials
       env:
         AWS_REGION: ${{ inputs.aws-region }}
@@ -59,6 +62,7 @@ runs:
 
     - name: Get TELEPORT Credentials
       id: get_teleport_credentials
+      shell: bash
       env:
         AWS_REGION: ${{ inputs.aws-region }}
         ENVIRONMENT: ${{ inputs.environment }}
@@ -83,7 +87,7 @@ runs:
     #       echo ${{steps.get_argocd_credentials.outputs.argocd-username}}
     #       echo ${{steps.get_teleport_credentials.outputs.teleport-key}}
 
-  outputs:
-    argocd-username: ${{steps.get_argocd_credentials.outputs.argocd-username}}
-    argocd-password: ${{steps.get_argocd_credentials.outputs.argocd-password}}
-    teleport-key: ${{steps.get_teleport_credentials.outputs.teleport-key}}
+  # outputs:
+  #   argocd-username: ${{steps.get_argocd_credentials.outputs.argocd-username}}
+  #   argocd-password: ${{steps.get_argocd_credentials.outputs.argocd-password}}
+  #   teleport-key: ${{steps.get_teleport_credentials.outputs.teleport-key}}
