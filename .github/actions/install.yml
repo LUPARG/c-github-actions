@@ -1,0 +1,89 @@
+name: "Install"
+description: "Install Deployment Tools"
+
+inputs:
+  environment:
+    description: “Environment we are connecting to”
+    required: true
+  aws-region:
+    description: “AWS Region”
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    # - name: Checkout code
+    #   uses: actions/checkout@v2
+    #   with:
+    #       ref: ${{ github.head_ref }}
+
+    - name: Install ARGOCD CLI
+      id: install_argocd_cli
+      run: |
+
+        # INSTALL ARGOCD CLI
+        sudo curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/download/v2.1.2/argocd-linux-amd64
+        sudo chmod +x /usr/local/bin/argocd
+
+    - name: Install TELEPORT CLI
+      id: install_teleport_cli
+      run: |
+
+        # INSTALL TELEPORT CLI
+        wget https://get.gravitational.com/teleport_8.3.4_amd64.deb
+        sudo apt install -y ./teleport_8.3.4_amd64.deb
+
+    - name: Get ARGOCD Credentials
+      id: get_argocd_credentials
+      env:
+        AWS_REGION: ${{ inputs.aws-region }}
+        ENVIRONMENT: ${{ inputs.environment }}
+      run: |
+
+        # INSTALL AWS CLI
+        sudo apt update && sudo apt install python3-pip -y
+        sudo pip install awscli --upgrade
+
+        # FETCH ARGOCD USERNAME
+        ARGOCD_USERNAME=$(aws ssm get-parameter --name /$ENVIRONMENT/circleci/argocd/argo-username --query "Parameter.Value" --output text --with-decryption --region $AWS_REGION)
+
+        # FETCH ARGOCD PASSWORD
+        ARGOCD_PASSWORD=$(aws ssm get-parameter --name /$ENVIRONMENT/circleci/argocd/argo-password --query "Parameter.Value" --output text --with-decryption --region $AWS_REGION)
+
+        # MASKS AND EXPORT CREDENTIALS
+        #echo "::add-mask::$ARGOCD_USERNAME"
+        echo "::set-output name=argocd-username::$ARGOCD_USERNAME"
+
+        #echo "::add-mask::$ARGOCD_PASSWORD"
+        echo "::set-output name=argocd-password::$ARGOCD_PASSWORD"
+
+    - name: Get TELEPORT Credentials
+      id: get_teleport_credentials
+      env:
+        AWS_REGION: ${{ inputs.aws-region }}
+        ENVIRONMENT: ${{ inputs.environment }}
+      run: |
+
+        # INSTALL AWS CLI
+        sudo apt update && sudo apt install python3-pip -y
+        sudo pip install awscli --upgrade
+
+        # FETCH TELEPORT AUTHENTICATION KEY
+        TELEPORT_KEY=$(aws ssm get-parameter --name /$ENVIRONMENT/circleci/teleport/teleport-key --query "Parameter.Value" --output text --with-decryption --region $AWS_REGION)  > /tmp/workspace/teleport-key.pem
+
+        # MASKS AND EXPORT CREDENTIALS
+        #echo "::add-mask::$TELEPORT_KEY"
+        echo "::set-output name=teleport-key::$TELEPORT_KEY"
+
+    # - name: Test Credentials Output same Job
+    #   run: |
+
+    #       # OUTPUT
+    #       echo ${{steps.get_argocd_credentials.outputs.argocd-username}}
+    #       echo ${{steps.get_argocd_credentials.outputs.argocd-username}}
+    #       echo ${{steps.get_teleport_credentials.outputs.teleport-key}}
+
+  outputs:
+    argocd-username: ${{steps.get_argocd_credentials.outputs.argocd-username}}
+    argocd-password: ${{steps.get_argocd_credentials.outputs.argocd-password}}
+    teleport-key: ${{steps.get_teleport_credentials.outputs.teleport-key}}
