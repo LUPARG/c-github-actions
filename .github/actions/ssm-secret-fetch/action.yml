@@ -29,14 +29,9 @@ runs:
         SECRET_PATH: ${{ inputs.secret-path }}
       run: |
 
-        # INSTALL AWS CLI
-        sudo apt update && sudo apt install python3-pip -y
-        sudo pip install awscli --upgrade
-
         # FETCH SSM SECRET
         #SSM_SECRET=$(aws ssm get-parameter --name /$ENVIRONMENT/circleci/argocd/argo-username --query "Parameter.Value" --output text --with-decryption --region $AWS_REGION)
         echo $SECRET_PATH
-        SSM_SECRET="argouser"
 
         # MASKS AND EXPORT CREDENTIALS
         #echo "::add-mask::$ARGOCD_USERNAME"
