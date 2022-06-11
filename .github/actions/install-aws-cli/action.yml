@@ -1,4 +1,4 @@
-name: "Install"
+name: "Install AWS CLI"
 description: "Install AWS CLI"
 
 runs:
