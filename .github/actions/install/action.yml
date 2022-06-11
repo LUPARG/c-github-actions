@@ -9,6 +9,17 @@ inputs:
     description: “AWS Region”
     required: true
 
+outputs:
+  argocd-username:
+    description: "ArgoCD Username"
+    value: ${{steps.get_argocd_credentials.outputs.argocd-username}}
+  argocd-password:
+    description: "ArgoCD Password"
+    value: ${{steps.get_argocd_credentials.outputs.argocd-password}}
+  teleport-key:
+    description: "Teleport Key"
+    value: ${{steps.get_teleport_credentials.outputs.teleport-key}}
+
 runs:
   using: "composite"
   steps:
@@ -48,10 +59,12 @@ runs:
         sudo pip install awscli --upgrade
 
         # FETCH ARGOCD USERNAME
-        ARGOCD_USERNAME=$(aws ssm get-parameter --name /$ENVIRONMENT/circleci/argocd/argo-username --query "Parameter.Value" --output text --with-decryption --region $AWS_REGION)
+        #ARGOCD_USERNAME=$(aws ssm get-parameter --name /$ENVIRONMENT/circleci/argocd/argo-username --query "Parameter.Value" --output text --with-decryption --region $AWS_REGION)
+        ARGOCD_USERNAME="argouser"
 
         # FETCH ARGOCD PASSWORD
-        ARGOCD_PASSWORD=$(aws ssm get-parameter --name /$ENVIRONMENT/circleci/argocd/argo-password --query "Parameter.Value" --output text --with-decryption --region $AWS_REGION)
+        #ARGOCD_PASSWORD=$(aws ssm get-parameter --name /$ENVIRONMENT/circleci/argocd/argo-password --query "Parameter.Value" --output text --with-decryption --region $AWS_REGION)
+        ARGOCD_PASSWORD="argopass"
 
         # MASKS AND EXPORT CREDENTIALS
         #echo "::add-mask::$ARGOCD_USERNAME"
@@ -73,21 +86,9 @@ runs:
         sudo pip install awscli --upgrade
 
         # FETCH TELEPORT AUTHENTICATION KEY
-        TELEPORT_KEY=$(aws ssm get-parameter --name /$ENVIRONMENT/circleci/teleport/teleport-key --query "Parameter.Value" --output text --with-decryption --region $AWS_REGION)  > /tmp/workspace/teleport-key.pem
+        #TELEPORT_KEY=$(aws ssm get-parameter --name /$ENVIRONMENT/circleci/teleport/teleport-key --query "Parameter.Value" --output text --with-decryption --region $AWS_REGION)  > /tmp/workspace/teleport-key.pem
+        TELEPORT_KEY="teleportkey"
 
         # MASKS AND EXPORT CREDENTIALS
         #echo "::add-mask::$TELEPORT_KEY"
         echo "::set-output name=teleport-key::$TELEPORT_KEY"
-
-    # - name: Test Credentials Output same Job
-    #   run: |
-
-    #       # OUTPUT
-    #       echo ${{steps.get_argocd_credentials.outputs.argocd-username}}
-    #       echo ${{steps.get_argocd_credentials.outputs.argocd-username}}
-    #       echo ${{steps.get_teleport_credentials.outputs.teleport-key}}
-
-  # outputs:
-  #   argocd-username: ${{steps.get_argocd_credentials.outputs.argocd-username}}
-  #   argocd-password: ${{steps.get_argocd_credentials.outputs.argocd-password}}
-  #   teleport-key: ${{steps.get_teleport_credentials.outputs.teleport-key}}
