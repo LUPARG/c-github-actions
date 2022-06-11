@@ -2,9 +2,6 @@ name: "SSM Secret Fetch"
 description: "Fetch an secret from AWS Parameter Store"
 
 inputs:
-  environment:
-    description: “Environment we are connecting to”
-    required: true
   aws-region:
     description: “AWS Region”
     required: true
@@ -25,14 +22,13 @@ runs:
       id: ssm-retrieve
       env:
         AWS_REGION: ${{ inputs.aws-region }}
-        ENVIRONMENT: ${{ inputs.environment }}
         SECRET_PATH: ${{ inputs.secret-path }}
       run: |
 
         # FETCH SSM SECRET
-        #SSM_SECRET=$(aws ssm get-parameter --name /$ENVIRONMENT/circleci/argocd/argo-username --query "Parameter.Value" --output text --with-decryption --region $AWS_REGION)
-        echo $SECRET_PATH
+        SSM_SECRET=$(aws ssm get-parameter --name $SECRET_PATH --query "Parameter.Value" --output text --with-decryption --region $AWS_REGION)
+        #echo $SECRET_PATH
 
         # MASKS AND EXPORT CREDENTIALS
-        #echo "::add-mask::$ARGOCD_USERNAME"
         echo "::set-output name=ssm-secret::$SSM_SECRET"
+        #echo "::set-output name=ssm-secret::$SECRET_PATH"
