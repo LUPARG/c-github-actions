@@ -2,11 +2,14 @@ name: "Select Environment"
 description: "Fetch an secret from AWS Parameter Store"
 
 inputs:
-  aws-region:
-    description: “AWS Region”
-    required: true
   commit-tag:
     description: "Commit Tag"
+    required: true
+  github-run-id:
+    description: "GitHub Run Id"
+    required: true
+  github-run-number:
+    description: "GitHub Run Number"
     required: true
 
 outputs:
