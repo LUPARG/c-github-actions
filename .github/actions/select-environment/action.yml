@@ -48,6 +48,7 @@ runs:
             echo "DEV TAGS"
             ENVIRONMENT="dev"
         else
+            echo ${GITHUB_REF_NAME}
             echo "This is not a valid tag, exiting ..."
             exit 1
         fi
