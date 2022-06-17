@@ -1,0 +1,65 @@
+name: "Update ARGOCD Release"
+description: "Fetch an secret from AWS Parameter Store"
+
+inputs:
+  aws-region:
+    description: “AWS Region”
+    required: true
+  environment:
+    description: "The Environment to deploy to"
+    required: true
+  teleport-url:
+    description: "Teleport URL"
+    required: true
+  teleport-key:
+    description: "Teleport URL"
+    required: true
+  argocd-username:
+    description: "ArgoCD Username"
+    required: true
+  argocd-password:
+    description: "ArgoCD Password"
+    required: true
+  release-image-tag:
+    description: "Release Image Tag"
+    required: true
+
+# outputs:
+#   ssm-secret:
+#     description: "SSM Secret"
+#     value: ${{steps.ssm-retrieve.outputs.ssm-secret}}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Update ArgoCD Release
+      shell: bash
+      id: update-argocd-release
+      env:
+        AWS_REGION: ${{ inputs.aws-region }}
+        ENVIRONMENT: ${{ inputs.environment }}
+        TELEPORT_URL: ${{ inputs.teleport-url }}
+        TELEPORT_KEY: ${{ inputs.teleport-key }}
+        ARGOCD_USERNAME: ${{ inputs.argocd-username }}
+        ARGOCD_PASSWORD: ${{ inputs.argocd-password }}
+        RELEASE_TAG: ${{ inputs.release-tag }}
+        ARGOCD_TIMEOUT_SECONDS: ${{ inputs.argocd-timeout-seconds }}
+      run: |
+
+        # EXPORT TELEPORT KEY VARIABLE TO A FILE
+        echo "$TELEPORT_KEY" > teleport-key.pem
+
+        # CREATES A TUNNEL TO TELEPORT AND KEEP SESSION ACTIVE WITH A LOOP
+        nohup tsh ssh -L 8444:argo-cd-argocd-server.argocd.svc.cluster.local:443 --proxy=$TELEPORT_URL -i teleport-key.pem root@bastion-$ENVIRONMENT "while sleep 1; do echo waiting; done" & sleep 10
+
+        # LOGIN TO ARGOCD
+        argocd login localhost:8444 --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --grpc-web --insecure
+
+        # SET NEW RELEASE TAG
+        argocd app set app-of-apps --revision $RELEASE_TAG && sleep 5
+
+        # WAIT FOR APP-OF-APPS TO REACH HEALHTY STATUS.
+        argocd app wait app-of-apps --timeout $ARGOCD_TIMEOUT_SECONDS | grep 'Name:\|Health Status:'
+
+        # WAIT FOR EVERY SINGLE APP TO REACH HEALHTY STATUS.
+        argocd app wait `argocd app list | awk '!/NAME|app-of-apps/{print $1}' | tr '\n' ' '` --timeout $ARGOCD_TIMEOUT_SECONDS | grep 'Name:\|Health Status:'
