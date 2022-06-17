@@ -2,9 +2,6 @@ name: "Update ARGOCD Release"
 description: "Fetch an secret from AWS Parameter Store"
 
 inputs:
-  aws-region:
-    description: “AWS Region”
-    required: true
   environment:
     description: "The Environment to deploy to"
     required: true
@@ -20,7 +17,7 @@ inputs:
   argocd-password:
     description: "ArgoCD Password"
     required: true
-  release-image-tag:
+  release-tag:
     description: "Release Image Tag"
     required: true
 
