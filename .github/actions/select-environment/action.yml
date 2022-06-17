@@ -1,16 +1,16 @@
 name: "Select Environment"
 description: "Fetch an secret from AWS Parameter Store"
 
-inputs:
-  commit-tag:
-    description: "Commit Tag"
-    required: true
-  github-run-id:
-    description: "GitHub Run Id"
-    required: true
-  github-run-number:
-    description: "GitHub Run Number"
-    required: true
+# inputs:
+#   commit-tag:
+#     description: "Commit Tag"
+#     required: true
+#   github-run-id:
+#     description: "GitHub Run Id"
+#     required: true
+#   github-run-number:
+#     description: "GitHub Run Number"
+#     required: true
 
 outputs:
   environment:
@@ -26,10 +26,10 @@ runs:
     - name: Select Environment
       shell: bash
       id: select-environment
-      env:
-        COMMIT_TAG: ${{ inputs.commit-tag }}
-        GITHUB_RUN_ID: ${{ inputs.github-run-id }}
-        GITHUB_RUN_NUMBER: ${{ inputs.github-run-number }}
+      # env:
+      #   COMMIT_TAG: ${{ inputs.commit-tag }}
+      #   GITHUB_RUN_ID: ${{ inputs.github-run-id }}
+      #   GITHUB_RUN_NUMBER: ${{ inputs.github-run-number }}
 
       run: |
 
@@ -38,13 +38,13 @@ runs:
         export REGEX_STG='^[0-9]+\.[0-9]+\.[0-9]+-stg\w+$'
         export REGEX_DEV='^[0-9]+\.[0-9]+\.[0-9]+-dev\w+$'
 
-        if [[ $COMMIT_TAG =~ $REGEX_PROD ]]; then
+        if [[ ${GITHUB_REF_NAME} =~ $REGEX_PROD ]]; then
             echo "PROD TAGS"
             ENVIRONMENT="prod"
-        elif [[ $COMMIT_TAG =~ $REGEX_STG ]]; then
+        elif [[ ${GITHUB_REF_NAME} =~ $REGEX_STG ]]; then
             echo "STG TAGS"
             ENVIRONMENT="staging"
-        elif [[ $COMMIT_TAG =~ $REGEX_DEV ]]; then
+        elif [[ ${GITHUB_REF_NAME} =~ $REGEX_DEV ]]; then
             echo "DEV TAGS"
             ENVIRONMENT="dev"
         else
@@ -52,7 +52,7 @@ runs:
             exit 1
         fi
 
-        RELEASE_TAG="$COMMIT_TAG-$GITHUB_RUN_ID-$GITHUB_RUN_NUMBER"
+        RELEASE_TAG="${GITHUB_REF_NAME}-${GITHUB_RUN_ID}-${GITHUB_RUN_NUMBER}"
 
         # OUTPUTS
         echo "::set-output name=environment::$ENVIRONMENT"
