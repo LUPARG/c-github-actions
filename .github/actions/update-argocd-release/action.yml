@@ -5,6 +5,9 @@ inputs:
   environment:
     description: "The Environment to deploy to"
     required: true
+  app-name:
+    description: "The app name to be setup"
+    required: true
   teleport-url:
     description: "Teleport URL"
     required: true
@@ -35,12 +38,14 @@ runs:
       env:
         AWS_REGION: ${{ inputs.aws-region }}
         ENVIRONMENT: ${{ inputs.environment }}
+        RELEASE_TAG: ${{ inputs.release-tag }}
+        APP_NAME: ${{ inputs.app-name }}
         TELEPORT_URL: ${{ inputs.teleport-url }}
         TELEPORT_KEY: ${{ inputs.teleport-key }}
         ARGOCD_USERNAME: ${{ inputs.argocd-username }}
         ARGOCD_PASSWORD: ${{ inputs.argocd-password }}
-        RELEASE_TAG: ${{ inputs.release-tag }}
         ARGOCD_TIMEOUT_SECONDS: ${{ inputs.argocd-timeout-seconds }}
+
       run: |
 
         # EXPORT TELEPORT KEY VARIABLE TO A FILE
@@ -52,11 +57,15 @@ runs:
         # LOGIN TO ARGOCD
         argocd login localhost:8444 --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --grpc-web --insecure
 
+        # INSTALL APP IF DOESN"T EXIST
+        argocd app create $APP_NAME --file ./devops/argocd/$APP_NAME.yaml
+
         # SET NEW RELEASE TAG
-        argocd app set app-of-apps --revision $RELEASE_TAG && sleep 5
+        #argocd app set app-of-apps --revision $RELEASE_TAG && sleep 5
 
         # WAIT FOR APP-OF-APPS TO REACH HEALHTY STATUS.
-        argocd app wait app-of-apps --timeout $ARGOCD_TIMEOUT_SECONDS | grep 'Name:\|Health Status:'
+        #argocd app wait app-of-apps --timeout $ARGOCD_TIMEOUT_SECONDS | grep 'Name:\|Health Status:'
+        argocd app wait $APP_NAME --timeout $ARGOCD_TIMEOUT_SECONDS
 
         # WAIT FOR EVERY SINGLE APP TO REACH HEALHTY STATUS.
-        argocd app wait `argocd app list | awk '!/NAME|app-of-apps/{print $1}' | tr '\n' ' '` --timeout $ARGOCD_TIMEOUT_SECONDS | grep 'Name:\|Health Status:'
+        #argocd app wait `argocd app list | awk '!/NAME|app-of-apps/{print $1}' | tr '\n' ' '` --timeout $ARGOCD_TIMEOUT_SECONDS | grep 'Name:\|Health Status:'
