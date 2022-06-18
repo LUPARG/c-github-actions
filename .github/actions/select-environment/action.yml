@@ -57,4 +57,4 @@ runs:
 
         # OUTPUTS
         echo "::set-output name=environment::$ENVIRONMENT"
-        echo "::set-output name=environment::$RELEASE_TAG"
+        echo "::set-output name=release-tag::$RELEASE_TAG"
