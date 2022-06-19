@@ -67,10 +67,10 @@ runs:
         argocd login localhost:8444 --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --grpc-web --plaintext
 
         # SET NEW RELEASE TAG
-        argocd app set $APP_NAME --revision $RELEASE_TAG && sleep 5
+        #argocd app set $APP_NAME --revision $RELEASE_TAG && sleep 5
 
         # INSTALL APP IF DOESN"T EXIST
-        #argocd app create $APP_NAME --file ./devops/argocd/$ENVIRONMENT/$APP_NAME.yaml
+        argocd app create $APP_NAME --file ./devops/argocd/$ENVIRONMENT/$APP_NAME.yaml --upsert
 
         # SET NEW RELEASE TAG
         #argocd app set app-of-apps --revision $RELEASE_TAG && sleep 5
