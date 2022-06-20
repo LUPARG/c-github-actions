@@ -53,7 +53,7 @@ runs:
             exit 1
         fi
 
-        RELEASE_TAG="${GITHUB_REF_NAME}-${GITHUB_RUN_ID}-${GITHUB_RUN_NUMBER}"
+        RELEASE_TAG="${GITHUB_REF_NAME}-${GITHUB_RUN_ID}-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}"
 
         # OUTPUTS
         echo "::set-output name=environment::$ENVIRONMENT"
