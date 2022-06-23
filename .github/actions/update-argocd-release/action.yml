@@ -45,23 +45,24 @@ runs:
         ARGOCD_USERNAME: ${{ inputs.argocd-username }}
         ARGOCD_PASSWORD: ${{ inputs.argocd-password }}
         ARGOCD_TIMEOUT_SECONDS: ${{ inputs.argocd-timeout-seconds }}
+        TELEPORT_BASTION: ${{ inputs.teleport-bastion }}
 
       run: |
 
         # UPDATE ARGOCD APPS DEFINITION WITH THE NEW RELEASE TAG
-        for file in ./devops/argocd/$ENVIRONMENT/*.yaml
-        do
-          echo "$file"
-          echo "PREVIOUS"
-          sed -i "s#<RELEASE_TAG>#$RELEASE_TAG#g" "$file" | grep -n imageVersion $file
-          echo "UPDATED" && grep -n imageVersion $file
-        done
+        # for file in ./devops/argocd/$ENVIRONMENT/*.yaml
+        # do
+        #   echo "$file"
+        #   echo "PREVIOUS"
+        #   sed -i "s#<RELEASE_TAG>#$RELEASE_TAG#g" "$file" | grep -n imageVersion $file
+        #   echo "UPDATED" && grep -n imageVersion $file
+        # done
 
         # EXPORT TELEPORT KEY VARIABLE TO A FILE
         echo "$TELEPORT_KEY" > teleport-key.pem
 
         # CREATES A TUNNEL TO TELEPORT AND KEEP SESSION ACTIVE WITH A LOOP
-        nohup tsh ssh -L 8444:argo-cd-argocd-server.argocd.svc.cluster.local:443 --proxy=$TELEPORT_URL -i teleport-key.pem root@bastion-$ENVIRONMENT "while sleep 1; do echo waiting; done" & sleep 10
+        nohup tsh ssh -L 8444:argo-cd-argocd-server.argocd.svc.cluster.local:443 --proxy=$TELEPORT_URL -i teleport-key.pem root@$TELEPORT_BASTION "while sleep 1; do echo waiting; done" & sleep 10
 
         # LOGIN TO ARGOCD
         argocd login localhost:8444 --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --grpc-web --plaintext
