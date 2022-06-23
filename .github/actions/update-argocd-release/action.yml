@@ -45,6 +45,7 @@ runs:
         ARGOCD_USERNAME: ${{ inputs.argocd-username }}
         ARGOCD_PASSWORD: ${{ inputs.argocd-password }}
         ARGOCD_TIMEOUT_SECONDS: ${{ inputs.argocd-timeout-seconds }}
+        ARGOCD_EXTRA_PARAMS: ${{ inputs.argocd-extra-params }}
         TELEPORT_BASTION: ${{ inputs.teleport-bastion }}
 
       run: |
@@ -65,7 +66,7 @@ runs:
         nohup tsh ssh -L 8444:argo-cd-argocd-server.argocd.svc.cluster.local:443 --proxy=$TELEPORT_URL -i teleport-key.pem root@$TELEPORT_BASTION "while sleep 1; do echo waiting; done" & sleep 10
 
         # LOGIN TO ARGOCD
-        argocd login localhost:8444 --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --grpc-web --plaintext
+        argocd login localhost:8444 --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --grpc-web $ARGOCD_EXTRA_PARAMS
 
         # SET NEW RELEASE TAG
         #argocd app set $APP_NAME --revision $RELEASE_TAG && sleep 5
