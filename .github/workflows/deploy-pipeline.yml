@@ -1,0 +1,144 @@
+name: deploy-pipeline
+on:
+  workflow_call:
+    inputs:
+      app-name:
+        required: true
+        type: string
+      argocd-extra-params:
+        required: true
+        type: string
+      teleport-url:
+        required: true
+        type: string
+      environment:
+        required: true
+        type: string
+      release-tag:
+        required: true
+        type: string
+      clone-k8s-helm-chart-repository:
+        required: true
+        type: string
+      clone-k8s-helm-chart-repository-tag:
+        required: true
+        type: string
+      find-pattern:
+        required: true
+        type: string
+      aws-region:
+        required: true
+        type: string
+      commit-path:
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Assume InfraDeployGitHub
+        uses: aws-actions/configure-aws-credentials@master
+        with:
+          aws-region: "${{ inputs.aws-region }}"
+          role-to-assume: arn:aws:iam::498179384503:role/CIDeployGitHub
+          role-duration-seconds: 1800
+
+      - name: Fetch ArgoCD Username
+        id: ssm-secret-fetch-argocd-username
+        uses: LUPARG/github-actions/.github/actions/ssm-secret-fetch@0.0.9
+        with:
+          aws-region: "${{ inputs.aws-region }}"
+          secret-path: "/${{ inputs.environment }}/github/argocd/argocd-username"
+
+      - name: Fetch ArgoCD Password
+        id: ssm-secret-fetch-argocd-password
+        uses: LUPARG/github-actions/.github/actions/ssm-secret-fetch@0.0.9
+        with:
+          aws-region: "${{ inputs.aws-region }}"
+          secret-path: "/${{ inputs.environment }}/github/argocd/argocd-password"
+
+      - name: Fetch Teleport Key
+        id: ssm-secret-fetch-teleport-key
+        uses: LUPARG/github-actions/.github/actions/ssm-secret-fetch@0.0.9
+        with:
+          aws-region: "${{ inputs.aws-region }}"
+          secret-path: "/common/github/teleport/teleport-key"
+
+      - name: Fetch GitHub Deploy Key
+        id: ssm-secret-fetch-github-deploy-key
+        uses: LUPARG/github-actions/.github/actions/ssm-secret-fetch@0.0.9
+        with:
+          aws-region: "${{ inputs.aws-region }}"
+          secret-path: "/common/github/c-k8s-helm-chart/deploy-key"
+
+      - name: CLONE K8S HELM CHART
+        id: clone-k8s-helm-chart
+        uses: LUPARG/github-actions/.github/actions/clone-private-repo@0.0.9
+        with:
+          github-deploy-key: "${{ steps.ssm-secret-fetch-github-deploy-key.outputs.ssm-secret }}"
+          repository: "${{ inputs.clone-k8s-helm-chart-repository }}"
+          repository-tag: "${{ inputs.clone-k8s-helm-chart-repository-tag }}"
+          clone-path: "./devops/argocd/k8s-helm-chart"
+          extra-commands: "rm -r ./devops/argocd/k8s-helm-chart/.git"
+
+      - name: Write Release
+        run: |
+          echo ${{inputs.release-tag}} >> release.txt
+
+      - name: UPDATE ARGOCD APPS DEFINITION WITH THE NEW RELEASE TAG
+        id: update-argocd-apps-release-tag
+        uses: LUPARG/github-actions/.github/actions/sed-files@0.0.9
+        with:
+          file-path: "./devops/argocd/${{ inputs.environment }}/*.yaml"
+          find-pattern: "${{ inputs.find-pattern }}"
+          replace-pattern: "${{ inputs.release-tag }}"
+
+      - name: COMMIT CHANGE AND PRODUCE RELEASE TAG
+        id: commit-and-tag
+        uses: LUPARG/github-actions/.github/actions/commit-and-tag@0.0.9
+        with:
+          release-tag: "${{ inputs.release-tag }}"
+          commit-path: "${{ inputs.commit-path }}"
+
+      - name: Install ARGOCD CLI
+        id: install-argocd-cli
+        uses: LUPARG/github-actions/.github/actions/install-argocd-cli@0.0.9
+
+      - name: Install TELEPORT CLI
+        id: install-teleport-cli
+        uses: LUPARG/github-actions/.github/actions/install-teleport-cli@0.0.9
+
+      - name: Check helm values file
+        run: |
+          ls -la ./devops/argocd/k8s-helm-chart
+          cat ./devops/argocd/k8s-helm-chart/values.yaml
+
+      - name: Update ARGOCD Release
+        id: update-argocd-release
+        uses: LUPARG/github-actions/.github/actions/update-argocd-release@0.0.9
+        with:
+          environment: "${{ inputs.environment }}"
+          release-tag: "${{ inputs.release-tag }}"
+          app-name: "${{ inputs.app-name }}"
+          argocd-username: "${{ steps.ssm-secret-fetch-argocd-username.outputs.ssm-secret }}"
+          argocd-password: "${{ steps.ssm-secret-fetch-argocd-password.outputs.ssm-secret }}"
+          argocd-timeout-seconds: "360"
+          argocd-extra-params: "${{ inputs.argocd-extra-params }}"
+          teleport-key: ${{ steps.ssm-secret-fetch-teleport-key.outputs.ssm-secret }}
+          teleport-url: "${{ inputs.teleport-url }}"
+          teleport-bastion: bastion-${{ inputs.environment }}
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{inputs.release-tag}}
+          release_name: Release ${{ inputs.release-tag }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          draft: false
+          generate_release_notes: true

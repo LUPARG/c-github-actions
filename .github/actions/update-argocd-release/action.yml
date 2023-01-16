@@ -50,36 +50,19 @@ runs:
 
       run: |
 
-        # UPDATE ARGOCD APPS DEFINITION WITH THE NEW RELEASE TAG
-        # for file in ./devops/argocd/$ENVIRONMENT/*.yaml
-        # do
-        #   echo "$file"
-        #   echo "PREVIOUS"
-        #   sed -i "s#<RELEASE_TAG>#$RELEASE_TAG#g" "$file" | grep -n imageVersion $file
-        #   echo "UPDATED" && grep -n imageVersion $file
-        # done
-
         # EXPORT TELEPORT KEY VARIABLE TO A FILE
-        echo "$TELEPORT_KEY" > teleport-key.pem
+        echo "${TELEPORT_KEY}" > teleport-key.pem
 
         # CREATES A TUNNEL TO TELEPORT AND KEEP SESSION ACTIVE WITH A LOOP
         nohup tsh ssh -L 8444:argo-cd-argocd-server.argocd.svc.cluster.local:443 --proxy=$TELEPORT_URL -i teleport-key.pem root@$TELEPORT_BASTION "while sleep 1; do echo waiting; done" & sleep 10
 
         # LOGIN TO ARGOCD
-        argocd login localhost:8444 --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --grpc-web $ARGOCD_EXTRA_PARAMS
+        argocd login localhost:8444 --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD $ARGOCD_EXTRA_PARAMS
 
-        # SET NEW RELEASE TAG
-        #argocd app set $APP_NAME --revision $RELEASE_TAG && sleep 5
-
+        set -x
         # INSTALL APP IF DOESN"T EXIST
         argocd app create $APP_NAME --file ./devops/argocd/$ENVIRONMENT/$APP_NAME.yaml --upsert
-
-        # SET NEW RELEASE TAG
-        #argocd app set app-of-apps --revision $RELEASE_TAG && sleep 5
 
         # WAIT FOR APP-OF-APPS TO REACH HEALHTY STATUS.
         #argocd app wait app-of-apps --timeout $ARGOCD_TIMEOUT_SECONDS | grep 'Name:\|Health Status:'
         argocd app wait $APP_NAME --timeout $ARGOCD_TIMEOUT_SECONDS
-
-        # WAIT FOR EVERY SINGLE APP TO REACH HEALHTY STATUS.
-        #argocd app wait `argocd app list | awk '!/NAME|app-of-apps/{print $1}' | tr '\n' ' '` --timeout $ARGOCD_TIMEOUT_SECONDS | grep 'Name:\|Health Status:'

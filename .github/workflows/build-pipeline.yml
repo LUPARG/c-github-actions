@@ -1,0 +1,56 @@
+name: devops-build
+on:
+  workflow_call:
+    inputs:
+      aws-region:
+        required: true
+        type: string
+      app-image-name:
+        required: true
+        type: string
+    outputs:
+      environment:
+        value: ${{ jobs.build.outputs.environment }}
+      release-tag:
+        value: ${{ jobs.build.outputs.release-tag }}
+      aws-region:
+        value: ${{ inputs.aws-region }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.select-environment.outputs.environment }}
+      release-tag: ${{ steps.select-environment.outputs.release-tag }}
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Select Environment
+      id: select-environment
+      uses: INFRALESS-IO/github-actions/.github/actions/select-environment@feature/devops-from-master
+
+    - name: Assume InfraDeployGitHub
+      uses: aws-actions/configure-aws-credentials@master
+      with:
+        aws-region: "${{ inputs.aws-region }}"
+        role-to-assume: arn:aws:iam::498179384503:role/CIDeployGitHub
+        role-duration-seconds: 1800
+
+    - name: Install AWS CLI
+      id: install-aws-cli
+      uses: INFRALESS-IO/github-actions/.github/actions/install-aws-cli@feature/devops-from-master
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Build and Push to ECR
+      env:
+        APP_IMAGE_NAME: 498179384503.dkr.ecr.ap-southeast-2.amazonaws.com/${{ inputs.app-image-name }}
+      run: |
+        export APP_IMAGE_FPM=${APP_IMAGE_NAME}:fpm-${{steps.select-environment.outputs.release-tag}}
+        export APP_IMAGE_NGINX=${APP_IMAGE_NAME}:nginx-${{steps.select-environment.outputs.release-tag}}
+        docker build -t $APP_IMAGE_FPM -f Dockerfile .
+        docker build -t $APP_IMAGE_NGINX -f Dockerfile-nginx .
+        docker push $APP_IMAGE_FPM
+        docker push $APP_IMAGE_NGINX
