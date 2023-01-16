@@ -36,7 +36,7 @@ runs:
         # PREPARE TAG CHECKING TO DETERMINE WHETHER IS PROD, STAGING or DEV
         export PROD_BRANCH='main'
         export STG_BRANCH='staging'
-        export DEV_BRANCH='development'
+        export DEV_BRANCH='dev'
         export REGEX_DEVOPS='^feature/devops'
 
         if [[ "${GITHUB_REF_NAME}" == "$PROD_BRANCH" ]]; then
