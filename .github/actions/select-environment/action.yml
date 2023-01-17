@@ -1,16 +1,10 @@
 name: "Select Environment"
 description: "Fetch an secret from AWS Parameter Store"
 
-# inputs:
-#   commit-tag:
-#     description: "Commit Tag"
-#     required: true
-#   github-run-id:
-#     description: "GitHub Run Id"
-#     required: true
-#   github-run-number:
-#     description: "GitHub Run Number"
-#     required: true
+inputs:
+  test-branch:
+    description: "Test Branch that can be passed to trigger deploys outside the standard ones"
+    required: true
 
 outputs:
   environment:
@@ -37,7 +31,7 @@ runs:
         export PROD_BRANCH='main'
         export STG_BRANCH='staging'
         export DEV_BRANCH='dev'
-        export REGEX_DEVOPS='^feature/devops'
+        export REGEX_DEVOPS='${{ inputs.test-branch }}'
 
         if [[ "${GITHUB_REF_NAME}" == "$PROD_BRANCH" ]]; then
             echo "PROD TAGS"
@@ -57,7 +51,6 @@ runs:
             exit 1
         fi
 
-        # RELEASE_TAG="${GITHUB_REF_NAME}-${GITHUB_RUN_ID}-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}"
         RELEASE_TAG="${ENVIRONMENT}-${GITHUB_RUN_ID}-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}"
 
         # OUTPUTS

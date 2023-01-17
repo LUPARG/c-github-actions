@@ -26,6 +26,6 @@ runs:
       run: |
 
         # BUILD AND PUSH
-        export APP_IMAGE=${APP_IMAGE_NAME}:{{inputs.release-tag}}
+        export APP_IMAGE=${APP_IMAGE_NAME}:${{inputs.release-tag}}
         docker build -t $APP_IMAGE -f Dockerfile .
         docker push $APP_IMAGE

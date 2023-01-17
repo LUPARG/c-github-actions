@@ -33,7 +33,7 @@ jobs:
 
       - name: Select Environment
         id: select-environment
-        uses: LUPARG/c-github-actions/.github/actions/select-environment@0.0.15
+        uses: LUPARG/c-github-actions/.github/actions/select-environment@0.0.16
 
       - name: Assume InfraDeployGitHub
         uses: aws-actions/configure-aws-credentials@master
@@ -44,7 +44,7 @@ jobs:
 
       - name: Install AWS CLI
         id: install-aws-cli
-        uses: LUPARG/c-github-actions/.github/actions/install-aws-cli@0.0.15
+        uses: LUPARG/c-github-actions/.github/actions/install-aws-cli@0.0.16
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -53,7 +53,7 @@ jobs:
       - name: Build and Push to ECR - PHP Version
         if: ${{ inputs.platform == 'php' }}
         id: build-push-ecr-php
-        uses: LUPARG/c-github-actions/.github/actions/build-push-ecr-php@0.0.15
+        uses: LUPARG/c-github-actions/.github/actions/build-push-ecr-php@0.0.16
         with:
           aws-account-id: ${{ inputs.aws-account-id }}
           aws-region: "${{ inputs.aws-region }}"
@@ -63,7 +63,7 @@ jobs:
       - name: Build and Push to ECR - NODE Version
         if: ${{ inputs.platform == 'node' }}
         id: build-push-ecr-node
-        uses: LUPARG/c-github-actions/.github/actions/build-push-ecr-node@0.0.15
+        uses: LUPARG/c-github-actions/.github/actions/build-push-ecr-node@0.0.16
         with:
           aws-account-id: ${{ inputs.aws-account-id }}
           aws-region: "${{ inputs.aws-region }}"
