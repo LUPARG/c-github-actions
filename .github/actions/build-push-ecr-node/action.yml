@@ -1,0 +1,31 @@
+name: "Build and Push to ECR - NODE Version"
+description: "Build and Push Node apps to ECR"
+
+inputs:
+  aws-account-id:
+    description: "AWS Account ID used to build ECR URL"
+    required: true
+  aws-region:
+    description: "AWS Region used to build ECR URL"
+    required: true
+  app-image-name:
+    description: "App Image Name"
+    required: true
+  release-tag:
+    description: "Release Tag"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Build and Push to ECR
+      shell: bash
+      id: build-push-ecr-node
+      env:
+        APP_IMAGE_NAME: ${{inputs.aws-account-id}}.dkr.ecr.${{inputs.aws-region}}.amazonaws.com/${{ inputs.app-image-name }}
+      run: |
+
+        # BUILD AND PUSH
+        export APP_IMAGE=${APP_IMAGE_NAME}:{{inputs.release-tag}}
+        docker build -t $APP_IMAGE -f Dockerfile .
+        docker push $APP_IMAGE
