@@ -48,35 +48,35 @@ jobs:
 
       - name: Fetch ArgoCD Username
         id: ssm-secret-fetch-argocd-username
-        uses: LUPARG/c-github-actions/.github/actions/ssm-secret-fetch@0.0.19
+        uses: LUPARG/c-github-actions/.github/actions/ssm-secret-fetch@0.0.20
         with:
           aws-region: "${{ inputs.aws-region }}"
           secret-path: "/${{ inputs.environment }}/github/argocd/argocd-username"
 
       - name: Fetch ArgoCD Password
         id: ssm-secret-fetch-argocd-password
-        uses: LUPARG/c-github-actions/.github/actions/ssm-secret-fetch@0.0.19
+        uses: LUPARG/c-github-actions/.github/actions/ssm-secret-fetch@0.0.20
         with:
           aws-region: "${{ inputs.aws-region }}"
           secret-path: "/${{ inputs.environment }}/github/argocd/argocd-password"
 
       - name: Fetch Teleport Key
         id: ssm-secret-fetch-teleport-key
-        uses: LUPARG/c-github-actions/.github/actions/ssm-secret-fetch@0.0.19
+        uses: LUPARG/c-github-actions/.github/actions/ssm-secret-fetch@0.0.20
         with:
           aws-region: "${{ inputs.aws-region }}"
           secret-path: "/common/github/teleport/teleport-key"
 
       - name: Fetch GitHub Deploy Key
         id: ssm-secret-fetch-github-deploy-key
-        uses: LUPARG/c-github-actions/.github/actions/ssm-secret-fetch@0.0.19
+        uses: LUPARG/c-github-actions/.github/actions/ssm-secret-fetch@0.0.20
         with:
           aws-region: "${{ inputs.aws-region }}"
           secret-path: "/common/github/c-k8s-helm-chart/deploy-key"
 
       - name: CLONE K8S HELM CHART
         id: clone-k8s-helm-chart
-        uses: LUPARG/c-github-actions/.github/actions/clone-private-repo@0.0.19
+        uses: LUPARG/c-github-actions/.github/actions/clone-private-repo@0.0.20
         with:
           github-deploy-key: "${{ steps.ssm-secret-fetch-github-deploy-key.outputs.ssm-secret }}"
           repository: "${{ inputs.clone-k8s-helm-chart-repository }}"
@@ -90,7 +90,7 @@ jobs:
 
       - name: UPDATE ARGOCD APPS DEFINITION WITH THE NEW RELEASE TAG
         id: update-argocd-apps-release-tag
-        uses: LUPARG/c-github-actions/.github/actions/sed-files@0.0.19
+        uses: LUPARG/c-github-actions/.github/actions/sed-files@0.0.20
         with:
           file-path: "./devops/argocd/${{ inputs.environment }}/*.yaml"
           find-pattern: "${{ inputs.find-pattern }}"
@@ -98,18 +98,18 @@ jobs:
 
       - name: COMMIT CHANGE AND PRODUCE RELEASE TAG
         id: commit-and-tag
-        uses: LUPARG/c-github-actions/.github/actions/commit-and-tag@0.0.19
+        uses: LUPARG/c-github-actions/.github/actions/commit-and-tag@0.0.20
         with:
           release-tag: "${{ inputs.release-tag }}"
           commit-path: "${{ inputs.commit-path }}"
 
       - name: Install ARGOCD CLI
         id: install-argocd-cli
-        uses: LUPARG/c-github-actions/.github/actions/install-argocd-cli@0.0.19
+        uses: LUPARG/c-github-actions/.github/actions/install-argocd-cli@0.0.20
 
       - name: Install TELEPORT CLI
         id: install-teleport-cli
-        uses: LUPARG/c-github-actions/.github/actions/install-teleport-cli@0.0.19
+        uses: LUPARG/c-github-actions/.github/actions/install-teleport-cli@0.0.20
 
       - name: Check helm values file
         run: |
@@ -118,7 +118,7 @@ jobs:
 
       - name: Update ARGOCD Release
         id: update-argocd-release
-        uses: LUPARG/c-github-actions/.github/actions/update-argocd-release@0.0.19
+        uses: LUPARG/c-github-actions/.github/actions/update-argocd-release@0.0.20
         with:
           environment: "${{ inputs.environment }}"
           release-tag: "${{ inputs.release-tag }}"
@@ -130,15 +130,3 @@ jobs:
           teleport-key: ${{ steps.ssm-secret-fetch-teleport-key.outputs.ssm-secret }}
           teleport-url: "${{ inputs.teleport-url }}"
           teleport-bastion: bastion-${{ inputs.environment }}
-
-      - name: Create Release
-        id: create_release
-        uses: softprops/action-gh-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{inputs.release-tag}}
-          release_name: Release ${{ inputs.release-tag }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          draft: false
-          generate_release_notes: true

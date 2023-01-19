@@ -1,0 +1,20 @@
+name: create-release-notes
+on:
+  workflow_call:
+    inputs:
+      release-tag:
+        required: true
+        type: string
+      environment:
+        required: true
+        type: string
+jobs:
+  create-release-notes:
+    env:
+      GH_TOKEN: ${{ github.token }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Create Release
+        run: |
+          gh release create ${{ inputs.release-tag }}-test --generate-notes --notes-start-tag $(gh release list | grep ${{ inputs.environment }} | head -n1 | awk '{print $1;}')
