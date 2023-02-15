@@ -8,6 +8,12 @@ on:
       environment:
         required: true
         type: string
+      aws-region:
+        required: true
+        type: string
+      aws-account-id:
+        required: true
+        type: string
 jobs:
   create-release-notes:
     env:
@@ -18,3 +24,26 @@ jobs:
       - name: Create Release
         run: |
           gh release create ${{ inputs.release-tag }} --generate-notes --notes-start-tag $(gh release list | grep ${{ inputs.environment }} | head -n1 | awk '{print $1;}')
+  save-source-to-s3:
+    needs: create-release-notes
+    env:
+      GH_TOKEN: ${{ github.token }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Assume InfraDeployGitHub
+        uses: aws-actions/configure-aws-credentials@master
+        with:
+          aws-region: "${{ inputs.aws-region }}"
+          role-to-assume: arn:aws:iam::${{ inputs.aws-account-id }}:role/CIDeployGitHub
+          role-duration-seconds: 1800
+      - name: Install AWS CLI
+        id: install-aws-cli
+        uses: LUPARG/c-github-actions/.github/actions/install-aws-cli@0.0.30
+      - uses: actions/download-artifact@v2
+        with:
+          name: release
+      - name: Copy release to S3
+        run: |
+          export RELEASE_NAME=$(gh release list | grep ${{ inputs.environment }} | head -n1 | awk '{print $1;}')
+          aws s3 cp release.zip s3://cs-github-backup-policy/${{ inputs.environment }}/$RELEASE_NAME.zip
