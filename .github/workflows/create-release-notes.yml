@@ -8,6 +8,12 @@ on:
       environment:
         required: true
         type: string
+      aws-region:
+        required: true
+        type: string
+      aws-account-id:
+        required: true
+        type: string
 jobs:
   create-release-notes:
     env:
@@ -18,3 +24,31 @@ jobs:
       - name: Create Release
         run: |
           gh release create ${{ inputs.release-tag }} --generate-notes --notes-start-tag $(gh release list | grep ${{ inputs.environment }} | head -n1 | awk '{print $1;}')
+  save-source-to-s3:
+    needs: create-release-notes
+    env:
+      GH_TOKEN: ${{ github.token }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Assume InfraDeployGitHub
+        uses: aws-actions/configure-aws-credentials@master
+        with:
+          aws-region: "${{ inputs.aws-region }}"
+          role-to-assume: arn:aws:iam::${{ inputs.aws-account-id }}:role/CIDeployGitHub
+          role-duration-seconds: 1800
+      - name: Install AWS CLI
+        id: install-aws-cli
+        uses: LUPARG/c-github-actions/.github/actions/install-aws-cli@0.0.33
+      - uses: robinraju/release-downloader@v1.7
+        with:
+          tag: "${{ inputs.release-tag }}"
+          fileName: "${{ inputs.release-tag }}.zip"
+      - name: Download release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # RELEASE_NAME=$(gh release list | grep ${{ inputs.environment }} | head -n1 | awk '{print $1;}')
+          # RELEASE_URL=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_NAME | grep "browser_download_url.*zip" | cut -d : -f 2,3 | tr -d \")
+          # curl -L -o $RELEASE_NAME.zip -H "Authorization: Bearer $GITHUB_TOKEN" $RELEASE_URL
+          aws s3 cp ${{ inputs.release-tag }}.zip s3://cs-github-backup-policy/${{ inputs.environment }}/${{ inputs.release-tag }}.zip
