@@ -40,6 +40,7 @@ runs:
         else
           echo "GITHUB_DEPLOY_KEY isn't empty"
           echo ${{ inputs.github-deploy-key }} >> key.txt
+          chmod 0400 key.txt
           #cat "${{ inputs.github-deploy-key }}" | ssh-add -
           ssh-add key.txt
         fi
