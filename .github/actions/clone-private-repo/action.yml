@@ -33,16 +33,13 @@ runs:
       run: |
         # add deploy key to ssh agent
         eval `ssh-agent -s`
-         
+
         # USE INPUTS DIRECTLY TO AVOID ENV VAR TO MESS UP WITH KEY FORMAT
         if [ -z "${GITHUB_DEPLOY_KEY}" ]; then
           echo "GITHUB_DEPLOY_KEY is empty"
         else
           echo "GITHUB_DEPLOY_KEY isn't empty"
-          echo ${{ inputs.github-deploy-key }} >> key.txt
-          chmod 0400 key.txt
-          #cat "${{ inputs.github-deploy-key }}" | ssh-add -
-          ssh-add key.txt
+          ssh-add - <<< "${{ inputs.github-deploy-key }}"
         fi
         # git clone
         git clone --depth 1 --branch $REPOSITORY_TAG $REPOSITORY $CLONE_PATH

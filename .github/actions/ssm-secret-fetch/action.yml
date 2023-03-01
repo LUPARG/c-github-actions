@@ -34,4 +34,5 @@ runs:
         SSM_SECRET="${SSM_SECRET//$'\r'/'%0D'}"
 
         # MASKS AND EXPORT CREDENTIALS
-        echo "ssm-secret=$SSM_SECRET" >> $GITHUB_OUTPUT
+        #echo "ssm-secret=$SSM_SECRET" >> $GITHUB_STATE
+        echo "::set-output name=ssm-secret::$SSM_SECRET"
