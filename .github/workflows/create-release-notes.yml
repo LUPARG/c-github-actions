@@ -42,7 +42,7 @@ jobs:
           role-duration-seconds: 1800
       - name: Install AWS CLI
         id: install-aws-cli
-        uses: LUPARG/c-github-actions/.github/actions/install-aws-cli@0.0.43
+        uses: LUPARG/c-github-actions/.github/actions/install-aws-cli@main
       - uses: robinraju/release-downloader@v1.7
         with:
           tag: "${{ inputs.release-tag }}"
