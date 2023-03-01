@@ -49,7 +49,7 @@ jobs:
           out-file-path: "releases"
           zipBall: true
           fileName: "${{ inputs.release-tag }}.zip"
-      - name: Download release
+      - name: Upload Release to S3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
