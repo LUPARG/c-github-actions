@@ -54,5 +54,5 @@ runs:
         RELEASE_TAG="${ENVIRONMENT}-${GITHUB_RUN_ID}-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}"
 
         # OUTPUTS
-        echo "environment=$ENVIRONMENT" >> $GITHUB_STATE
-        echo "release-tag=$RELEASE_TAG" >> $GITHUB_STATE
+        echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
+        echo "release-tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
