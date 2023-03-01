@@ -39,9 +39,9 @@ runs:
           echo "GITHUB_DEPLOY_KEY is empty"
         else
           echo "GITHUB_DEPLOY_KEY isn't empty"
-          echo ${{ inputs.github-deploy-key }}
-          cat "${{ inputs.github-deploy-key }}" | ssh-add -
-          #ssh-add - <<< "${{ inputs.github-deploy-key }}"
+          echo ${{ inputs.github-deploy-key }} >> key.txt
+          #cat "${{ inputs.github-deploy-key }}" | ssh-add -
+          ssh-add key.txt
         fi
         # git clone
         git clone --depth 1 --branch $REPOSITORY_TAG $REPOSITORY $CLONE_PATH
