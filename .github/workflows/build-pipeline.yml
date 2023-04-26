@@ -43,7 +43,7 @@ jobs:
 
       - name: Select Environment
         id: select-environment
-        uses: LUPARG/c-github-actions/.github/actions/select-environment@main
+        uses: LUPARG/c-github-actions/.github/actions/select-environment@feat/c-finance-change
         with:
           test-branch: ${{ inputs.test-branch }}
           is-gitlab-flow: ${{ inputs.is-gitlab-flow }}
