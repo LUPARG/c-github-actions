@@ -17,6 +17,10 @@ on:
       test-branch:
         required: false
         type: string
+      is-gitlab-flow:
+        required: false
+        type: boolean
+        default: false
     outputs:
       environment:
         value: ${{ jobs.build.outputs.environment }}
@@ -26,7 +30,8 @@ on:
         value: ${{ inputs.aws-region }}
       aws-account-id:
         value: ${{ inputs.aws-account-id }}
-
+      is-gitlab-flow:
+        value: ${{ inputs.is-gitlab-flow }}
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -41,6 +46,7 @@ jobs:
         uses: LUPARG/c-github-actions/.github/actions/select-environment@main
         with:
           test-branch: ${{ inputs.test-branch }}
+          is-gitlab-flow: ${{ inputs.is-gitlab-flow }}
 
       - name: Assume InfraDeployGitHub
         uses: aws-actions/configure-aws-credentials@master
