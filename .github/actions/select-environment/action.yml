@@ -28,9 +28,20 @@ runs:
       run: |
 
         # PREPARE TAG CHECKING TO DETERMINE WHETHER IS PROD, STAGING or DEV
-        export PROD_BRANCH='main'
-        export STG_BRANCH='staging'
-        export DEV_BRANCH='dev'
+
+        export IS_GITLAB_FLOW='${{ inputs.is-gitlab-flow }}'
+
+        if [ "$IS_GITLAB_FLOW" = true ] ; then
+          echo "USING GITLAB FLOW"
+          export PROD_BRANCH='prod'
+          export STG_BRANCH='staging'
+          export DEV_BRANCH='main'
+        else
+          export PROD_BRANCH='main'
+          export STG_BRANCH='staging'
+          export DEV_BRANCH='dev'
+        fi
+
         export REGEX_DEVOPS='${{ inputs.test-branch }}'
 
         if [[ "${GITHUB_REF_NAME}" == "$PROD_BRANCH" ]]; then
