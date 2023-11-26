@@ -1,0 +1,34 @@
+name: "Build and Push to ECR - PHP Next Version"
+description: "Build and Push PHP apps to ECR"
+
+inputs:
+  aws-account-id:
+    description: "AWS Account ID used to build ECR URL"
+    required: true
+  aws-region:
+    description: "AWS Region used to build ECR URL"
+    required: true
+  app-image-name:
+    description: "App Image Name"
+    required: true
+  release-tag:
+    description: "Release Tag"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Build and Push to ECR
+      shell: bash
+      id: build-push-ecr-php
+      env:
+        APP_IMAGE_NAME: ${{inputs.aws-account-id}}.dkr.ecr.${{inputs.aws-region}}.amazonaws.com/${{ inputs.app-image-name }}
+
+      run: |
+
+        # BUILD and PUSH to ECR
+        export APP_IMAGE_WEB=${APP_IMAGE_NAME}:web-${{inputs.release-tag}}
+
+        docker build -t $APP_IMAGE_WEB -f Dockerfile .
+
+        docker push $APP_IMAGE_WEB
