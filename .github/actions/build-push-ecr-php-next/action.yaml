@@ -20,7 +20,7 @@ runs:
   steps:
     - name: Build and Push to ECR
       shell: bash
-      id: build-push-ecr-php
+      id: build-push-ecr-php-next
       env:
         APP_IMAGE_NAME: ${{inputs.aws-account-id}}.dkr.ecr.${{inputs.aws-region}}.amazonaws.com/${{ inputs.app-image-name }}
 
