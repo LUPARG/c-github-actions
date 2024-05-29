@@ -8,9 +8,9 @@ on:
       argocd-extra-params:
         required: true
         type: string
-      teleport-url:
-        required: true
-        type: string
+      # teleport-url:
+      #   required: true
+      #   type: string
       environment:
         required: true
         type: string
@@ -51,21 +51,21 @@ jobs:
         uses: LUPARG/c-github-actions/.github/actions/ssm-secret-fetch@main
         with:
           aws-region: "${{ inputs.aws-region }}"
-          secret-path: "/${{ inputs.environment }}/github/argocd/argocd-username"
+          secret-path: "/${{ inputs.environment }}/github/argocd/argocd-username-new"
 
       - name: Fetch ArgoCD Password
         id: ssm-secret-fetch-argocd-password
         uses: LUPARG/c-github-actions/.github/actions/ssm-secret-fetch@main
         with:
           aws-region: "${{ inputs.aws-region }}"
-          secret-path: "/${{ inputs.environment }}/github/argocd/argocd-password"
+          secret-path: "/${{ inputs.environment }}/github/argocd/argocd-password-new"
 
-      - name: Fetch Teleport Key
-        id: ssm-secret-fetch-teleport-key
-        uses: LUPARG/c-github-actions/.github/actions/ssm-secret-fetch@main
-        with:
-          aws-region: "${{ inputs.aws-region }}"
-          secret-path: "/common/github/teleport/teleport-key"
+      # - name: Fetch Teleport Key
+      #   id: ssm-secret-fetch-teleport-key
+      #   uses: LUPARG/c-github-actions/.github/actions/ssm-secret-fetch@main
+      #   with:
+      #     aws-region: "${{ inputs.aws-region }}"
+      #     secret-path: "/common/github/teleport/teleport-key"
 
       - name: Fetch GitHub Deploy Key
         id: ssm-secret-fetch-github-deploy-key
@@ -107,9 +107,9 @@ jobs:
         id: install-argocd-cli
         uses: LUPARG/c-github-actions/.github/actions/install-argocd-cli@main
 
-      - name: Install TELEPORT CLI
-        id: install-teleport-cli
-        uses: LUPARG/c-github-actions/.github/actions/install-teleport-cli@main
+      # - name: Install TELEPORT CLI
+      #   id: install-teleport-cli
+      #   uses: LUPARG/c-github-actions/.github/actions/install-teleport-cli@main
 
       - name: Check helm values file
         run: |
@@ -127,6 +127,6 @@ jobs:
           argocd-password: "${{ steps.ssm-secret-fetch-argocd-password.outputs.ssm-secret }}"
           argocd-timeout-seconds: "360"
           argocd-extra-params: "${{ inputs.argocd-extra-params }}"
-          teleport-key: ${{ steps.ssm-secret-fetch-teleport-key.outputs.ssm-secret }}
-          teleport-url: "${{ inputs.teleport-url }}"
-          teleport-bastion: bastion-${{ inputs.environment }}
+          # teleport-key: ${{ steps.ssm-secret-fetch-teleport-key.outputs.ssm-secret }}
+          # teleport-url: "${{ inputs.teleport-url }}"
+          # teleport-bastion: bastion-${{ inputs.environment }}

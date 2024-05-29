@@ -1,0 +1,62 @@
+name: "Update ARGOCD Release"
+description: "Fetch an secret from AWS Parameter Store"
+
+inputs:
+  environment:
+    description: "The Environment to deploy to"
+    required: true
+  app-name:
+    description: "The app name to be setup"
+    required: true
+  argocd-username:
+    description: "ArgoCD Username"
+    required: true
+  argocd-password:
+    description: "ArgoCD Password"
+    required: true
+  release-tag:
+    description: "Release Image Tag"
+    required: true
+
+# outputs:
+#   ssm-secret:
+#     description: "SSM Secret"
+#     value: ${{steps.ssm-retrieve.outputs.ssm-secret}}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Update ArgoCD Release
+      shell: bash
+      id: update-argocd-release
+      env:
+        AWS_REGION: ${{ inputs.aws-region }}
+        ENVIRONMENT: ${{ inputs.environment }}
+        RELEASE_TAG: ${{ inputs.release-tag }}
+        APP_NAME: ${{ inputs.app-name }}
+        # TELEPORT_URL: ${{ inputs.teleport-url }}
+        # TELEPORT_KEY: ${{ inputs.teleport-key }}
+        ARGOCD_USERNAME: ${{ inputs.argocd-username }}
+        ARGOCD_PASSWORD: ${{ inputs.argocd-password }}
+        ARGOCD_TIMEOUT_SECONDS: ${{ inputs.argocd-timeout-seconds }}
+        ARGOCD_EXTRA_PARAMS: ${{ inputs.argocd-extra-params }}
+        # TELEPORT_BASTION: ${{ inputs.teleport-bastion }}
+
+      run: |
+
+        # EXPORT TELEPORT KEY VARIABLE TO A FILE
+        # echo "${TELEPORT_KEY}" > teleport-key.pem
+
+        # CREATES A TUNNEL TO TELEPORT AND KEEP SESSION ACTIVE WITH A LOOP
+        # nohup tsh ssh -L 8444:argo-cd-argocd-server.argocd.svc.cluster.local:443 --proxy=$TELEPORT_URL -i teleport-key.pem root@$TELEPORT_BASTION "while sleep 1; do echo waiting; done" & sleep 10
+
+        # LOGIN TO ARGOCD
+        argocd login argocdtest.s211.continusys.app:443 --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD $ARGOCD_EXTRA_PARAMS
+
+        set -x
+        # INSTALL APP IF DOESN"T EXIST
+        argocd app create $APP_NAME --file ./devops/argocd/$ENVIRONMENT/$APP_NAME.yaml --upsert
+
+        # WAIT FOR APP-OF-APPS TO REACH HEALHTY STATUS.
+        #argocd app wait app-of-apps --timeout $ARGOCD_TIMEOUT_SECONDS | grep 'Name:\|Health Status:'
+        argocd app wait $APP_NAME --timeout $ARGOCD_TIMEOUT_SECONDS
