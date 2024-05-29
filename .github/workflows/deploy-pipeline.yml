@@ -118,7 +118,7 @@ jobs:
 
       - name: Update ARGOCD Release
         id: update-argocd-release
-        uses: LUPARG/c-github-actions/.github/actions/update-argocd-release@main
+        uses: LUPARG/c-github-actions/.github/actions/update-argocd-release-new@newcluster
         with:
           environment: "${{ inputs.environment }}"
           release-tag: "${{ inputs.release-tag }}"
