@@ -44,19 +44,7 @@ runs:
 
       run: |
 
-        # EXPORT TELEPORT KEY VARIABLE TO A FILE
-        # echo "${TELEPORT_KEY}" > teleport-key.pem
-
-        # CREATES A TUNNEL TO TELEPORT AND KEEP SESSION ACTIVE WITH A LOOP
-        # nohup tsh ssh -L 8444:argo-cd-argocd-server.argocd.svc.cluster.local:443 --proxy=$TELEPORT_URL -i teleport-key.pem root@$TELEPORT_BASTION "while sleep 1; do echo waiting; done" & sleep 10
-
-        # LOGIN TO ARGOCD
         argocd login argocdtest.s211.continusys.app:443 --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD $ARGOCD_EXTRA_PARAMS
-
         set -x
-        # INSTALL APP IF DOESN"T EXIST
         argocd app create $APP_NAME --file ./devops/argocd/$ENVIRONMENT/$APP_NAME.yaml --upsert
-
-        # WAIT FOR APP-OF-APPS TO REACH HEALHTY STATUS.
-        #argocd app wait app-of-apps --timeout $ARGOCD_TIMEOUT_SECONDS | grep 'Name:\|Health Status:'
         argocd app wait $APP_NAME --timeout $ARGOCD_TIMEOUT_SECONDS
