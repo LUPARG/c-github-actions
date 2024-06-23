@@ -48,7 +48,7 @@ runs:
         set -x
         if [ "$ENVIRONMENT" = "dev" ];
         then
-        argocd app create $APP_NAME --file ./devops/argocd/$ENVIRONMENT/$APP_NAME-dev.yaml --upsert
+        argocd app create $APP_NAME-dev --file ./devops/argocd/$ENVIRONMENT/$APP_NAME.yaml --upsert
         else
         argocd app create $APP_NAME --file ./devops/argocd/$ENVIRONMENT/$APP_NAME.yaml --upsert
         fi
