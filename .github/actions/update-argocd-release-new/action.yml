@@ -49,7 +49,9 @@ runs:
         if [ "$ENVIRONMENT" = "dev" ];
         then
         argocd app create $APP_NAME-dev --file ./devops/argocd/$ENVIRONMENT/$APP_NAME.yaml --upsert
+        argocd app wait $APP_NAME-dev --timeout $ARGOCD_TIMEOUT_SECONDS
         else
         argocd app create $APP_NAME --file ./devops/argocd/$ENVIRONMENT/$APP_NAME.yaml --upsert
-        fi
         argocd app wait $APP_NAME --timeout $ARGOCD_TIMEOUT_SECONDS
+        fi
+        
