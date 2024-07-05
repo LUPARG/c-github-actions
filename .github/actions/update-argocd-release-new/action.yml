@@ -43,9 +43,14 @@ runs:
         # TELEPORT_BASTION: ${{ inputs.teleport-bastion }}
 
       run: |
-
+        if [ "$ENVIRONMENT" = "prod" ];
+        then
+        argocd login argocd-prod.p211.continusys.app:443 --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD_PROD $ARGOCD_EXTRA_PARAMS
+        set -x
+        else
         argocd login argocd-np.s211.continusys.app:443 --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD $ARGOCD_EXTRA_PARAMS
         set -x
+        fi
         if [ "$ENVIRONMENT" = "dev" ];
         then
         argocd app create $APP_NAME-dev --file ./devops/argocd/$ENVIRONMENT/$APP_NAME.yaml --upsert
@@ -54,3 +59,4 @@ runs:
         argocd app create $APP_NAME --file ./devops/argocd/$ENVIRONMENT/$APP_NAME.yaml --upsert
         argocd app wait $APP_NAME --timeout $ARGOCD_TIMEOUT_SECONDS
         fi
+        
