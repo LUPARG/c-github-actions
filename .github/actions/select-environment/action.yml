@@ -35,11 +35,11 @@ runs:
           echo "USING GITLAB FLOW"
           export PROD_BRANCH='prod'
           export STG_BRANCH='staging'
-          export DEV_BRANCH='main'
+          export DEV_BRANCH='test-aswin'
         else
           export PROD_BRANCH='main'
           export STG_BRANCH='staging'
-          export DEV_BRANCH='dev'
+          export DEV_BRANCH='test-aswin'
         fi
 
         export REGEX_DEVOPS='${{ inputs.test-branch }}'
