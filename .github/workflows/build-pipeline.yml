@@ -72,6 +72,15 @@ jobs:
           aws-region: "${{ inputs.aws-region }}"
           app-image-name: ${{ inputs.app-image-name }}
           release-tag: ${{steps.select-environment.outputs.release-tag}}
+      - name: Build and Push to ECR - PHP Nginx Version
+        if: ${{ inputs.platform == 'php-nginx' }}
+        id: build-push-ecr-php-nginx
+        uses: LUPARG/c-github-actions/.github/actions/build-push-ecr-php-nginx@branching-update
+        with:
+          aws-account-id: ${{ inputs.aws-account-id }}
+          aws-region: "${{ inputs.aws-region }}"
+          app-image-name: ${{ inputs.app-image-name }}
+          release-tag: ${{steps.select-environment.outputs.release-tag}}
 
       - name: Build and Push to ECR - PHP Next Version
         if: ${{ inputs.platform == 'php-next' }}
